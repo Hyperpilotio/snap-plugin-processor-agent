@@ -1,0 +1,6 @@
+hash: cc43826db06857e826863dc02c492912d39bfc4d5e0ae7eb31d09060fbecac1d
+updated: 2017-03-16T19:06:41.601986301+08:00
+imports:
+- name: github.com/intelsdi-x/snap-plugin-lib-go
+  version: af03307f16e97c41f966b1e00d340d3393d6675d
+testImports: []
