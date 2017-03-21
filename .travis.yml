@@ -1,0 +1,50 @@
+# File managed by pluginsync
+sudo: true
+language: go
+go:
+- 1.6.x
+- 1.7.x
+services:
+  - docker
+env:
+  global:
+  - SNAP_PLUGIN_SOURCE=/home/travis/gopath/src/github.com/${TRAVIS_REPO_SLUG}
+  matrix:
+  - TEST_TYPE: small
+  - SNAP_VERSION: latest
+    OS: alpine
+    TEST_TYPE: large
+  - SNAP_VERSION: latest_build
+    OS: alpine
+    TEST_TYPE: large
+  - SNAP_VERSION: latest
+    OS: xenial
+    TEST_TYPE: large
+  - SNAP_VERSION: latest
+    OS: centos7
+    TEST_TYPE: large
+  - TEST_TYPE=build
+matrix:
+  exclude:
+  - go: 1.6.3
+    env: SNAP_VERSION=latest OS=alpine TEST_TYPE=large
+  - go: 1.6.3
+    env: SNAP_VERSION=latest_build OS=alpine TEST_TYPE=large
+  - go: 1.6.3
+    env: SNAP_VERSION=latest OS=xenial TEST_TYPE=large
+  - go: 1.6.3
+    env: SNAP_VERSION=latest OS=centos7 TEST_TYPE=large
+  - go: 1.6.x
+    env: TEST_TYPE=build
+before_install:
+- sudo add-apt-repository ppa:masterminds/glide -y
+- "curl -s https://packagecloud.io/install/repositories/intelsdi-x/snap/script.deb.sh | sudo bash"
+- sudo apt-get update -qq
+- sudo apt-get install -y snap-telemetry
+- sudo apt-get install glide
+install:
+  - make get-deps
+script:
+- make check 2>&1
+notifications:
+  email: false
