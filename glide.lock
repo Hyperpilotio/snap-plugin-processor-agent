@@ -1,5 +1,5 @@
-hash: dd0de43747f54814101944f001f34b09ccf3301abad8c6f952d7a1fff58e712c
-updated: 2017-03-22T05:41:08.811366653+08:00
+hash: f7b6207f411fa3fa0653783e2ae662838fe905df743f47999ab2dce9bf3d027b
+updated: 2017-03-22T07:59:29.569291155+08:00
 imports:
 - name: github.com/golang/protobuf
   version: 888eb0692c857ec880338addf316bd662d5e630e
@@ -12,6 +12,12 @@ imports:
   - v1/plugin/rpc
 - name: github.com/julienschmidt/httprouter
   version: 8c199fb6259ffc1af525cc3ad52ee60ba8359669
+- name: github.com/smartystreets/goconvey
+  version: d4c757aa9afd1e2fc1832aaab209b5794eb336e1
+  subpackages:
+  - convey
+  - convey/gotest
+  - convey/reporting
 - name: golang.org/x/net
   version: 154d9f9ea81208afed560f4cf27b4860c8ed1904
   subpackages:
@@ -44,9 +50,3 @@ testImports:
   subpackages:
   - internal/go-render/render
   - internal/oglematchers
-- name: github.com/smartystreets/goconvey
-  version: 995f5b2e021c69b8b028ba6d0b05c1dd500783db
-  subpackages:
-  - convey
-  - convey/gotest
-  - convey/reporting

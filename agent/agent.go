@@ -1,15 +1,26 @@
 package agent
 
 import (
+	"fmt"
+
 	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
 )
 
-// RProcessor test processor
+// Processor test processor
 type Processor struct {
 }
 
 // Process test process function
 func (p Processor) Process(mts []plugin.Metric, cfg plugin.Config) ([]plugin.Metric, error) {
+	for _, mt := range mts {
+		switch mt.Namespace.Strings()[len(mt.Namespace.Strings())-1] {
+
+		case "http_requests_total":
+			// do something
+			fmt.Printf("http_requests_total is %v\n", mt.Data)
+		}
+	}
+
 	return mts, nil
 }
 
