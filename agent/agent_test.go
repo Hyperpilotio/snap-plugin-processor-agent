@@ -1,5 +1,3 @@
-// +build small
-
 package agent
 
 import (
@@ -8,9 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestReverseProcessor(t *testing.T) {
-	p := Processor{}
-
+func TestProcessor(t *testing.T) {
 	Convey("Test Processor", t, func() {
 		Convey("Process int metric", func() {
 			// metrics := []plugin.Metric{
@@ -30,7 +26,7 @@ func TestReverseProcessor(t *testing.T) {
 		})
 
 		Convey("Test GetConfigPolicy", func() {
-			p := Processor{}
+			p := GodddQoSProcessor{}
 			_, err := p.GetConfigPolicy()
 
 			Convey("No error returned", func() {
