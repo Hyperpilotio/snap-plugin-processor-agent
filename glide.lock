@@ -1,6 +1,8 @@
-hash: f7b6207f411fa3fa0653783e2ae662838fe905df743f47999ab2dce9bf3d027b
-updated: 2017-03-22T07:59:29.569291155+08:00
+hash: dff052acf935c7190d89601e334351d6735123c30cd5555ee5b98948f488011a
+updated: 2017-03-31T10:08:05.399969557+08:00
 imports:
+- name: github.com/go-resty/resty
+  version: c45c7bcc0000d1a9ac1b119b2e6043c6540eedea
 - name: github.com/golang/protobuf
   version: 888eb0692c857ec880338addf316bd662d5e630e
   subpackages:
@@ -26,6 +28,7 @@ imports:
   - http2/hpack
   - internal/timeseries
   - lex/httplex
+  - publicsuffix
   - trace
 - name: google.golang.org/grpc
   version: 0032a855ba5c8a3c8e0d71c2deef354b70af1584
