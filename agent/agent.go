@@ -34,7 +34,7 @@ func SendMetricToQosDataStore(urlString string, value float64) error {
 }
 
 func calculateSlackValue(goal int, current int) float64 {
-	return (float64(goal) - float64(current)) / float64(goal)
+	return (float64(current) - float64(goal)) / float64(goal)
 }
 
 // Process test process function
