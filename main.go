@@ -30,5 +30,5 @@ const (
 )
 
 func main() {
-	plugin.StartProcessor(agent.Processor{}, pluginName, pluginVersion)
+	plugin.StartProcessor(agent.NewProcessor(), pluginName, pluginVersion)
 }

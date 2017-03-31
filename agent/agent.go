@@ -13,6 +13,14 @@ import (
 
 // Processor test processor
 type GodddQoSProcessor struct {
+	Cache *Cache
+}
+
+// NewProcessor generate processor
+func NewProcessor() plugin.Processor {
+	return &GodddQoSProcessor{
+		Cache: NewCache(),
+	}
 }
 
 func SendMetricToQosDataStore(urlString string, value float64) error {
@@ -33,17 +41,34 @@ func SendMetricToQosDataStore(urlString string, value float64) error {
 	return nil
 }
 
-func calculateSlackValue(goal int, current int) float64 {
-	return (float64(current) - float64(goal)) / float64(goal)
+func calculateSlackValue(goal interface{}, current interface{}) float64 {
+	switch goal.(type) {
+	case float64:
+		return (current.(float64) - goal.(float64)) / goal.(float64)
+	default:
+		return 0.0
+	}
 }
 
 // Process test process function
-func (p GodddQoSProcessor) Process(mts []plugin.Metric, cfg plugin.Config) ([]plugin.Metric, error) {
+func (p *GodddQoSProcessor) Process(mts []plugin.Metric, cfg plugin.Config) ([]plugin.Metric, error) {
 	for _, mt := range mts {
-		switch mt.Namespace.Strings()[len(mt.Namespace.Strings())-1] {
+		// switch mt.Namespace.Strings()[len(mt.Namespace.Strings())-1] {
+		//  case "api_booking_service_request_latency_microseconds":
+		// }
 
-		case "api_booking_service_request_latency_microseconds":
-
+		if method, ok := mt.Tags["method"]; ok {
+			data, cacheExist := p.Cache.Data[method]
+			if !cacheExist {
+				p.Cache.Data[method] = CacheType{Pre: mt.Data}
+				break
+			}
+			switch method {
+			case "list_cargos":
+				// FIXME Instead of giving cache of metric as goal, we should give meaningful benchmark
+				_ = calculateSlackValue(data.Pre, mt.Data)
+			case "list_locations":
+			}
 		}
 	}
 
@@ -57,7 +82,7 @@ func (p GodddQoSProcessor) Process(mts []plugin.Metric, cfg plugin.Config) ([]pl
 	plugin. Here you define what sorts of config info your plugin
 	needs and/or requires.
 */
-func (p GodddQoSProcessor) GetConfigPolicy() (plugin.ConfigPolicy, error) {
+func (p *GodddQoSProcessor) GetConfigPolicy() (plugin.ConfigPolicy, error) {
 	policy := plugin.NewConfigPolicy()
 
 	policy.AddNewStringRule([]string{""}, "qos-data-store-url", false, plugin.SetDefaultString("http://qos-data-store:7781"))
