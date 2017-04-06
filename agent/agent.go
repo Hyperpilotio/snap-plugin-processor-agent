@@ -8,19 +8,18 @@ import (
 
 	"github.com/go-resty/resty"
 
+	//"github.com/golang/glog"
 	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
 )
 
 // Processor test processor
 type GodddQoSProcessor struct {
-	Cache *Cache
+	Goal float64
 }
 
 // NewProcessor generate processor
 func NewProcessor() plugin.Processor {
-	return &GodddQoSProcessor{
-		Cache: NewCache(),
-	}
+	return &GodddQoSProcessor{}
 }
 
 func SendMetricToQosDataStore(urlString string, value float64) error {
@@ -41,33 +40,29 @@ func SendMetricToQosDataStore(urlString string, value float64) error {
 	return nil
 }
 
-func calculateSlackValue(goal interface{}, current interface{}) float64 {
-	switch goal.(type) {
-	case float64:
-		return (current.(float64) - goal.(float64)) / goal.(float64)
-	default:
-		return 0.0
-	}
+func calculateSlackValue(goal float64, current float64) float64 {
+	return (current - goal) / goal
 }
 
 // Process test process function
 func (p *GodddQoSProcessor) Process(mts []plugin.Metric, cfg plugin.Config) ([]plugin.Metric, error) {
-	for _, mt := range mts {
-		// switch mt.Namespace.Strings()[len(mt.Namespace.Strings())-1] {
-		//  case "api_booking_service_request_latency_microseconds":
-		// }
+	goalConfig, err := cfg.GetInt("sla-goal")
+	if err != nil {
+		return mts, errors.New("Unable to read sla-goal config: " + err.Error())
+	}
+	slaGoal := float64(goalConfig)
 
-		if method, ok := mt.Tags["method"]; ok {
-			data, cacheExist := p.Cache.Data[method]
-			if !cacheExist {
-				p.Cache.Data[method] = CacheType{Pre: mt.Data}
-				break
-			}
-			switch method {
-			case "list_cargos":
-				// FIXME Instead of giving cache of metric as goal, we should give meaningful benchmark
-				_ = calculateSlackValue(data.Pre, mt.Data)
-			case "list_locations":
+	for _, mt := range mts {
+		if mt.Namespace.Strings()[len(mt.Namespace.Strings())-1] == "api_booking_service_request_latency_microseconds" {
+			if summary, ok := mt.Tags["summary"]; ok {
+				if summary == "quantile_90" {
+					method, _ := mt.Tags["method"]
+					switch method {
+					case "list_cargos":
+						_ = calculateSlackValue(slaGoal, mt.Data.(float64))
+					case "list_locations":
+					}
+				}
 			}
 		}
 	}
