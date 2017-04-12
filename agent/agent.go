@@ -40,8 +40,12 @@ func SendMetricToQosDataStore(urlString string, value float64) error {
 	return nil
 }
 
-func calculateSlackValue(goal float64, current float64) float64 {
-	return (current - goal) / goal
+func calculateSlackValue(goal float64, current float64) (float64, error) {
+	if goal == 0 {
+		return goal, errors.New("SLA goal value should not be zero!")
+	}
+
+	return (goal - current) / goal, nil
 }
 
 // Process test process function
@@ -50,20 +54,40 @@ func (p *GodddQoSProcessor) Process(mts []plugin.Metric, cfg plugin.Config) ([]p
 	if err != nil {
 		return mts, errors.New("Unable to read sla-goal config: " + err.Error())
 	}
-	slaGoal := float64(goalConfig)
+	slaGoal := float64(goalConfig) / 1000.0 // convert slo value from milliseconds to seconds
 
+	metricType, err := cfg.GetString("metric-type")
+	if err != nil {
+		return mts, errors.New("Unable to read metric-type config: " + err.Error())
+	}
+
+	var metricSum float64
+	var count int
 	for _, mt := range mts {
-		if mt.Namespace.Strings()[len(mt.Namespace.Strings())-1] == "api_booking_service_request_latency_microseconds" {
+		if mt.Namespace.Strings()[len(mt.Namespace.Strings())-1] == "api_booking_service_request_latency_microseconds" { // metric value in seconds
 			if summary, ok := mt.Tags["summary"]; ok {
-				if summary == "quantile_90" {
-					method, _ := mt.Tags["method"]
-					switch method {
-					case "list_cargos":
-						_ = calculateSlackValue(slaGoal, mt.Data.(float64))
-					case "list_locations":
-					}
+				if summary == metricType {
+					metricSum += mt.Data.(float64)
+					count++
 				}
 			}
+		}
+	}
+
+	if count >= 0 {
+		metricMean := metricSum / float64(count)
+		slackValue, err := calculateSlackValue(slaGoal, metricMean)
+		if err != nil {
+			return mts, errors.New("Unable to calculate slack value: " + err.Error())
+		}
+
+		urlString, err := cfg.GetString("qos-data-store-url")
+		if err != nil {
+			return mts, errors.New("Unable to read qos-data-store-url config: " + err.Error())
+		}
+
+		if err := SendMetricToQosDataStore(urlString, slackValue); err != nil {
+			return mts, errors.New("Unable to send slack value: " + err.Error())
 		}
 	}
 
@@ -81,7 +105,8 @@ func (p *GodddQoSProcessor) GetConfigPolicy() (plugin.ConfigPolicy, error) {
 	policy := plugin.NewConfigPolicy()
 
 	policy.AddNewStringRule([]string{""}, "qos-data-store-url", false, plugin.SetDefaultString("http://qos-data-store:7781"))
-	policy.AddNewIntRule([]string{""}, "sla-goal", false, plugin.SetDefaultInt(700))
+	policy.AddNewIntRule([]string{""}, "sla-goal", false, plugin.SetDefaultInt(500))
+	policy.AddNewStringRule([]string{""}, "metric-type", false, plugin.SetDefaultString("quantile_90"))
 
 	return *policy, nil
 }

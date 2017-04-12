@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	pluginName    = "agent"
+	pluginName    = "snap-plugin-processor-agent"
 	pluginVersion = 1
 )
 
