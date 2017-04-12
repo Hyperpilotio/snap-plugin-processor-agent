@@ -74,7 +74,7 @@ func (p *GodddQoSProcessor) Process(mts []plugin.Metric, cfg plugin.Config) ([]p
 		}
 	}
 
-	if count >= 0 {
+	if count > 0 {
 		metricMean := metricSum / float64(count)
 		slackValue, err := calculateSlackValue(slaGoal, metricMean)
 		if err != nil {
