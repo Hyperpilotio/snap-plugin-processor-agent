@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"strconv"
 
 	"github.com/go-resty/resty"
 
@@ -60,6 +61,9 @@ func (p *GodddQoSProcessor) Process(mts []plugin.Metric, cfg plugin.Config) ([]p
 	if err != nil {
 		return mts, errors.New("Unable to read metric-type config: " + err.Error())
 	}
+
+	fmt.Println("SLA goal for snap-goddd processor: " + strconv.FormatFloat(slaGoal, 'f', -1, 64) + " seconds")
+	fmt.Println("Metric type for snap-goddd processor: " + metricType)
 
 	var metricSum float64
 	var count int
