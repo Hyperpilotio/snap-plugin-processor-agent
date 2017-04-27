@@ -23,15 +23,16 @@ func NewProcessor() plugin.Processor {
 	return &GodddQoSProcessor{}
 }
 
-func SendMetricToQosDataStore(urlString string, value float64) error {
+func SendMetricToQosDataStore(urlString string, slack float64, latency float64) error {
 	u, err := url.Parse(urlString)
 	if err != nil {
 		return errors.New("Unable to parse url: " + err.Error())
 	}
 
-	u.Path = path.Join(u.Path, "v1/apps/goddd/metrics/slack")
+	u.Path = path.Join(u.Path, "v1/apps/goddd/metrics")
 	body := make(map[string]float64)
-	body["value"] = value
+	body["slack"] = slack
+	body["latency"] = latency
 	if response, err := resty.R().SetBody(body).Post(u.String()); err != nil {
 		return errors.New("Unable to send metrics to qos data store: " + err.Error())
 	} else if response.StatusCode() >= 300 {
@@ -90,7 +91,7 @@ func (p *GodddQoSProcessor) Process(mts []plugin.Metric, cfg plugin.Config) ([]p
 			return mts, errors.New("Unable to read qos-data-store-url config: " + err.Error())
 		}
 
-		if err := SendMetricToQosDataStore(urlString, slackValue); err != nil {
+		if err := SendMetricToQosDataStore(urlString, slackValue, metricMean); err != nil {
 			return mts, errors.New("Unable to send slack value: " + err.Error())
 		}
 	}
